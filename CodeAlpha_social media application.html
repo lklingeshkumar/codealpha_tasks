@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulse — Social</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c27;
+    --border: #2a2a3d;
+    --accent: #7c6af7;
+    --accent2: #f06292;
+    --accent3: #4dd9ac;
+    --text: #e8e8f0;
+    --text2: #8888aa;
+    --text3: #5555777;
+    --card-glow: 0 0 0 1px var(--border), 0 4px 24px rgba(124,106,247,0.08);
+    --radius: 16px;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,106,247,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,106,247,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ============ LAYOUT ============ */
+  .app-shell {
+    display: grid;
+    grid-template-columns: 260px 1fr 300px;
+    grid-template-rows: 64px 1fr;
+    min-height: 100vh;
+    max-width: 1280px;
+    margin: 0 auto;
+    gap: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============ TOPBAR ============ */
+  .topbar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,10,15,0.8);
+    backdrop-filter: blur(20px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 20px;
+  }
+
+  .logo {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 22px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .search-bar {
+    flex: 1;
+    max-width: 400px;
+    position: relative;
+  }
+
+  .search-bar input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 8px 16px 8px 40px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-bar input:focus { border-color: var(--accent); }
+  .search-bar input::placeholder { color: var(--text2); }
+
+  .search-bar .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text2);
+    font-size: 15px;
+    pointer-events: none;
+  }
+
+  .topbar-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .notification-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text2);
+    font-size: 16px;
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .notification-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .notif-badge {
+    position: absolute;
+    top: -2px; right: -2px;
+    width: 16px; height: 16px;
+    background: var(--accent2);
+    border-radius: 50%;
+    font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    color: white;
+    border: 2px solid var(--bg);
+  }
+
+  .avatar-sm {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent);
+    cursor: pointer;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ============ SIDEBAR LEFT ============ */
+  .sidebar-left {
+    padding: 24px 16px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    color: var(--text2);
+    font-weight: 500;
+    font-size: 15px;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+    text-decoration: none;
+  }
+
+  .nav-item:hover {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  .nav-item.active {
+    background: rgba(124,106,247,0.12);
+    color: var(--accent);
+    border-color: rgba(124,106,247,0.3);
+  }
+
+  .nav-item .nav-icon { font-size: 18px; width: 22px; text-align: center; }
+
+  .nav-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 12px 8px;
+  }
+
+  .post-btn {
+    margin-top: auto;
+    background: linear-gradient(135deg, var(--accent), #a78bfa);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(124,106,247,0.35);
+    letter-spacing: 0.3px;
+  }
+
+  .post-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 28px rgba(124,106,247,0.45);
+  }
+
+  /* ============ MAIN FEED ============ */
+  .main-feed {
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    height: calc(100vh - 64px);
+    padding: 0;
+  }
+
+  .feed-header {
+    padding: 20px 24px 0;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,15,0.9);
+    backdrop-filter: blur(16px);
+    z-index: 10;
+  }
+
+  .feed-title {
+    font-family: var(--font-head);
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 16px;
+  }
+
+  .feed-tabs {
+    display: flex;
+    gap: 0;
+  }
+
+  .tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    color: var(--text2);
+    font-weight: 500;
+    font-size: 14px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* ============ COMPOSE ============ */
+  .compose-box {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 14px;
+  }
+
+  .compose-right { flex: 1; }
+
+  .compose-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    resize: none;
+    line-height: 1.5;
+    min-height: 60px;
+    max-height: 200px;
+  }
+
+  .compose-input::placeholder { color: var(--text3, #666680); }
+
+  .compose-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .compose-tool {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 18px;
+    cursor: pointer;
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+
+  .compose-tool:hover { background: rgba(124,106,247,0.12); }
+
+  .char-count {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .char-count.warn { color: var(--accent2); }
+
+  .submit-post {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 20px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .submit-post:hover { background: #6b58f5; transform: translateY(-1px); }
+  .submit-post:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ============ POST CARD ============ */
+  .post-card {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    cursor: pointer;
+    animation: fadeSlideIn 0.3s ease forwards;
+  }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .post-card:hover { background: rgba(255,255,255,0.015); }
+
+  .post-header {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .post-meta { flex: 1; }
+
+  .post-author {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .author-name {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .author-name:hover { color: var(--accent); }
+
+  .author-handle {
+    color: var(--text2);
+    font-size: 13px;
+  }
+
+  .post-time {
+    color: var(--text2);
+    font-size: 13px;
+    margin-left: auto;
+  }
+
+  .post-body {
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--text);
+    margin-bottom: 14px;
+    word-break: break-word;
+  }
+
+  .post-body .hashtag { color: var(--accent); cursor: pointer; }
+  .post-body .hashtag:hover { text-decoration: underline; }
+
+  .post-image {
+    width: 100%;
+    border-radius: 12px;
+    max-height: 320px;
+    object-fit: cover;
+    margin-bottom: 14px;
+    border: 1px solid var(--border);
+  }
+
+  .post-actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: none;
+    background: none;
+    color: var(--text2);
+    font-size: 13px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: all 0.15s;
+    flex: 1;
+    justify-content: center;
+    max-width: 100px;
+  }
+
+  .action-btn:hover.like { color: var(--accent2); background: rgba(240,98,146,0.1); }
+  .action-btn:hover.comment { color: var(--accent); background: rgba(124,106,247,0.1); }
+  .action-btn:hover.share { color: var(--accent3); background: rgba(77,217,172,0.1); }
+  .action-btn:hover.bookmark { color: #f5c518; background: rgba(245,197,24,0.1); }
+
+  .action-btn.liked { color: var(--accent2); }
+  .action-btn.liked .action-icon { transform: scale(1.2); }
+
+  .action-icon { font-size: 16px; transition: transform 0.15s; }
+
+  /* ============ COMMENTS ============ */
+  .comments-section {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 4px;
+    display: none;
+  }
+
+  .comments-section.open { display: block; animation: fadeSlideIn 0.2s ease; }
+
+  .comment-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .comment-item:last-child { border-bottom: none; }
+
+  .comment-body { flex: 1; }
+
+  .comment-author {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .comment-text {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .comment-compose {
+    display: flex;
+    gap: 10px;
+    padding-top: 12px;
+    margin-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .comment-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .comment-input:focus { border-color: var(--accent); }
+  .comment-input::placeholder { color: var(--text2); }
+
+  .comment-submit {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .comment-submit:hover { background: #6b58f5; }
+
+  /* ============ SIDEBAR RIGHT ============ */
+  .sidebar-right {
+    padding: 24px 16px;
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+
+  .widget {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .widget-title {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 14px;
+  }
+
+  .trend-item {
+    padding: 8px 0;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .trend-item:hover { opacity: 0.75; }
+  .trend-item:not(:last-child) { border-bottom: 1px solid var(--border); }
+
+  .trend-tag {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .trend-count {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  .suggest-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+  }
+
+  .suggest-item:not(:last-child) { border-bottom: 1px solid var(--border); }
+
+  .suggest-info { flex: 1; min-width: 0; }
+
+  .suggest-name {
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .suggest-handle {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .follow-btn {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .follow-btn:hover, .follow-btn.following {
+    background: var(--accent);
+    color: white;
+  }
+
+  .follow-btn.following {
+    background: rgba(124,106,247,0.2);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* ============ PROFILE VIEW ============ */
+  .profile-view {
+    display: none;
+    animation: fadeSlideIn 0.25s ease;
+  }
+
+  .profile-view.active { display: block; }
+
+  .profile-banner {
+    height: 140px;
+    background: linear-gradient(135deg, rgba(124,106,247,0.4), rgba(240,98,146,0.4), rgba(77,217,172,0.2));
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .profile-avatar-wrap {
+    position: absolute;
+    bottom: -40px;
+    left: 24px;
+  }
+
+  .profile-avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 4px solid var(--bg);
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 28px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .profile-info-bar {
+    padding: 52px 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .profile-name {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 24px;
+    margin-bottom: 2px;
+  }
+
+  .profile-handle { color: var(--text2); font-size: 14px; margin-bottom: 10px; }
+
+  .profile-bio { font-size: 15px; line-height: 1.5; margin-bottom: 14px; }
+
+  .profile-stats {
+    display: flex;
+    gap: 24px;
+  }
+
+  .stat-item { cursor: pointer; }
+
+  .stat-num {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .stat-label { font-size: 13px; color: var(--text2); }
+
+  .profile-actions {
+    position: absolute;
+    right: 24px;
+    top: 160px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 20px;
+    padding: 7px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font-body);
+  }
+
+  .btn-outline:hover { border-color: var(--text); }
+
+  .btn-primary {
+    background: var(--text);
+    color: var(--bg);
+    border: 1px solid var(--text);
+    border-radius: 20px;
+    padding: 7px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font-body);
+  }
+
+  /* ============ MODAL (Login / Signup) ============ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+    width: 100%;
+    max-width: 420px;
+    animation: slideUp 0.25s ease;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-logo {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 28px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .modal-subtitle {
+    text-align: center;
+    color: var(--text2);
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+
+  .modal-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 24px;
+  }
+
+  .modal-tab {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.15s;
+  }
+
+  .modal-tab.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  .form-field {
+    margin-bottom: 16px;
+  }
+
+  .form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text2);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .form-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus { border-color: var(--accent); }
+  .form-input::placeholder { color: var(--text2); opacity: 0.6; }
+
+  .form-submit {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent), #a78bfa);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 13px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(124,106,247,0.35);
+    margin-top: 4px;
+  }
+
+  .form-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 28px rgba(124,106,247,0.45);
+  }
+
+  .form-error {
+    color: var(--accent2);
+    font-size: 13px;
+    margin-top: 6px;
+    display: none;
+  }
+
+  .quick-login {
+    margin-top: 20px;
+    text-align: center;
+    padding: 14px;
+    background: var(--surface2);
+    border-radius: 12px;
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .quick-users {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .quick-user-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font-body);
+  }
+
+  .quick-user-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ============ TOASTS ============ */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toast {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: toastIn 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    min-width: 240px;
+  }
+
+  @keyframes toastIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  .toast.success { border-left: 3px solid var(--accent3); }
+  .toast.error { border-left: 3px solid var(--accent2); }
+  .toast.info { border-left: 3px solid var(--accent); }
+
+  /* ============ EMPTY STATE ============ */
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text2);
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-text { font-size: 16px; font-weight: 500; }
+  .empty-sub { font-size: 14px; margin-top: 6px; opacity: 0.7; }
+
+  /* ============ LOADING ============ */
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+  }
+
+  @keyframes shimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+  }
+
+  /* ============ AVATAR COLORS ============ */
+  .av-purple { background: linear-gradient(135deg, #7c6af7, #a78bfa); color: white; }
+  .av-pink { background: linear-gradient(135deg, #f06292, #f48fb1); color: white; }
+  .av-teal { background: linear-gradient(135deg, #4dd9ac, #26c6da); color: white; }
+  .av-orange { background: linear-gradient(135deg, #ff7043, #ffb74d); color: white; }
+  .av-blue { background: linear-gradient(135deg, #42a5f5, #5c6bc0); color: white; }
+
+  /* ============ SCROLLBAR ============ */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3, #5555777); }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 1024px) {
+    .app-shell { grid-template-columns: 64px 1fr 260px; }
+    .nav-item span:not(.nav-icon) { display: none; }
+    .nav-item { justify-content: center; }
+    .post-btn span { display: none; }
+    .post-btn { padding: 12px; }
+  }
+
+  @media (max-width: 768px) {
+    .app-shell { grid-template-columns: 1fr; grid-template-rows: 56px 1fr 56px; }
+    .sidebar-left { grid-row: 3; flex-direction: row; height: 56px; padding: 0 8px; border-right: none; border-top: 1px solid var(--border); position: sticky; bottom: 0; top: auto; overflow: visible; background: rgba(10,10,15,0.95); backdrop-filter: blur(20px); }
+    .sidebar-right { display: none; }
+    .main-feed { height: calc(100vh - 120px); }
+    .nav-divider, .post-btn, .nav-item:last-of-type { display: none; }
+    .nav-item { flex: 1; justify-content: center; padding: 8px; }
+    .search-bar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Toast container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Auth Modal -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal">
+      <div class="modal-logo">Pulse</div>
+      <div class="modal-subtitle">Connect with people who matter</div>
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="switchAuthTab('login')">Log In</button>
+        <button class="modal-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+      </div>
+
+      <div id="loginForm">
+        <div class="form-field">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="loginEmail" placeholder="you@example.com">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="loginPassword" placeholder="••••••••">
+          <div class="form-error" id="loginError">Invalid email or password</div>
+        </div>
+        <button class="form-submit" onclick="handleLogin()">Log In</button>
+      </div>
+
+      <div id="signupForm" style="display:none">
+        <div class="form-field">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-input" id="signupName" placeholder="Your name">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="signupUsername" placeholder="@username">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="signupEmail" placeholder="you@example.com">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="signupPassword" placeholder="••••••••">
+          <div class="form-error" id="signupError">Please fill all fields</div>
+        </div>
+        <button class="form-submit" onclick="handleSignup()">Create Account</button>
+      </div>
+
+      <div class="quick-login">
+        <div>Or jump in as a demo user:</div>
+        <div class="quick-users" id="quickUsers"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app-shell" id="mainApp" style="display:none">
+    <!-- Topbar -->
+    <header class="topbar">
+      <a class="logo" href="#" onclick="showFeed()">Pulse ⚡</a>
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search Pulse..." id="searchInput" oninput="handleSearch(this.value)">
+      </div>
+      <div class="topbar-actions">
+        <button class="notification-btn" onclick="showToast('Notifications coming soon!', 'info')">
+          🔔
+          <span class="notif-badge" id="notifBadge">3</span>
+        </button>
+        <div class="avatar-sm av-purple" id="topbarAvatar" onclick="viewCurrentProfile()" style="cursor:pointer"></div>
+      </div>
+    </header>
+
+    <!-- Left Sidebar -->
+    <nav class="sidebar-left">
+      <div class="nav-item active" id="navFeed" onclick="showFeed()">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </div>
+      <div class="nav-item" id="navExplore" onclick="showExplore()">
+        <span class="nav-icon">🔍</span>
+        <span>Explore</span>
+      </div>
+      <div class="nav-item" id="navProfile" onclick="viewCurrentProfile()">
+        <span class="nav-icon">👤</span>
+        <span>Profile</span>
+      </div>
+      <div class="nav-item" onclick="showToast('Bookmarks coming soon!', 'info')">
+        <span class="nav-icon">🔖</span>
+        <span>Bookmarks</span>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-item" onclick="logout()">
+        <span class="nav-icon">🚪</span>
+        <span>Log Out</span>
+      </div>
+      <button class="post-btn" onclick="focusCompose()">
+        <span>✦</span>
+        <span>Post</span>
+      </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-feed" id="mainContent">
+      <!-- Feed view -->
+      <div id="feedView">
+        <div class="feed-header">
+          <div class="feed-title">Home</div>
+          <div class="feed-tabs">
+            <div class="tab active" onclick="switchTab('for-you', this)">For You</div>
+            <div class="tab" onclick="switchTab('following', this)">Following</div>
+          </div>
+        </div>
+
+        <div class="compose-box">
+          <div class="avatar-sm av-purple" id="composeAvatar"></div>
+          <div class="compose-right">
+            <textarea class="compose-input" id="composeInput" placeholder="What's on your mind?" rows="2"
+              oninput="updateCharCount(this)"></textarea>
+            <div class="compose-actions">
+              <button class="compose-tool" title="Photo" onclick="showToast('Image upload coming soon!', 'info')">🖼</button>
+              <button class="compose-tool" title="GIF" onclick="showToast('GIF support coming soon!', 'info')">🎬</button>
+              <button class="compose-tool" title="Emoji" onclick="insertEmoji()">😊</button>
+              <span class="char-count" id="charCount">280</span>
+              <button class="submit-post" id="submitPostBtn" onclick="submitPost()">Post</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="feedPosts"></div>
+      </div>
+
+      <!-- Profile view -->
+      <div id="profileView" class="profile-view">
+        <div class="profile-banner" id="profileBanner">
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar" id="profileAvatar"></div>
+          </div>
+        </div>
+        <div style="position:relative">
+          <div class="profile-actions" id="profileActions"></div>
+          <div class="profile-info-bar">
+            <div class="profile-name" id="profileName"></div>
+            <div class="profile-handle" id="profileHandle"></div>
+            <div class="profile-bio" id="profileBio"></div>
+            <div class="profile-stats">
+              <div class="stat-item">
+                <div class="stat-num" id="profilePosts">0</div>
+                <div class="stat-label">Posts</div>
+              </div>
+              <div class="stat-item" onclick="showFollowList('followers')">
+                <div class="stat-num" id="profileFollowers">0</div>
+                <div class="stat-label">Followers</div>
+              </div>
+              <div class="stat-item" onclick="showFollowList('following')">
+                <div class="stat-num" id="profileFollowing">0</div>
+                <div class="stat-label">Following</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="feed-tabs" style="padding: 0 24px; border-bottom: 1px solid var(--border);">
+          <div class="tab active">Posts</div>
+          <div class="tab" onclick="showToast('Replies tab coming soon!', 'info')">Replies</div>
+          <div class="tab" onclick="showToast('Media tab coming soon!', 'info')">Media</div>
+          <div class="tab" onclick="showToast('Likes tab coming soon!', 'info')">Likes</div>
+        </div>
+        <div id="profilePosts"></div>
+      </div>
+
+      <!-- Explore view -->
+      <div id="exploreView" style="display:none">
+        <div class="feed-header">
+          <div class="feed-title">Explore</div>
+        </div>
+        <div id="exploreContent" style="padding: 16px 24px;"></div>
+      </div>
+    </main>
+
+    <!-- Right Sidebar -->
+    <aside class="sidebar-right">
+      <div class="widget">
+        <div class="widget-title">🔥 Trending</div>
+        <div id="trendingList"></div>
+      </div>
+      <div class="widget">
+        <div class="widget-title">✨ Who to Follow</div>
+        <div id="suggestList"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+// ============ DATABASE ============
+const DB_KEY = 'pulse_db';
+
+function loadDB() {
+  try {
+    const raw = localStorage.getItem(DB_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function saveDB(db) {
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+
+function initDB() {
+  const existing = loadDB();
+  if (existing) return existing;
+
+  const db = {
+    users: [],
+    posts: [],
+    comments: [],
+    likes: [],      // { userId, postId }
+    follows: [],    // { followerId, followingId }
+    nextId: 100
+  };
+
+  // Seed users
+  const seedUsers = [
+    { name: 'Alex Rivers', username: 'alexrivers', email: 'alex@pulse.app', password: 'demo', bio: '🎸 Music producer & digital artist. Creating worlds through sound.', avatarClass: 'av-purple' },
+    { name: 'Maya Chen', username: 'mayachen', email: 'maya@pulse.app', password: 'demo', bio: '🌿 Designer & minimalist. Beauty is function.', avatarClass: 'av-teal' },
+    { name: 'Jordan Park', username: 'jordanpark', email: 'jordan@pulse.app', password: 'demo', bio: '📸 Photographer. Coffee addict. City explorer.', avatarClass: 'av-pink' },
+    { name: 'Sam Okafor', username: 'samokafor', email: 'sam@pulse.app', password: 'demo', bio: '🚀 Engineer building the future. Rust enthusiast.', avatarClass: 'av-orange' },
+    { name: 'Priya Sharma', username: 'priyasharma', email: 'priya@pulse.app', password: 'demo', bio: '📚 Writer & storyteller. Words are my canvas.', avatarClass: 'av-blue' },
+  ];
+
+  seedUsers.forEach((u, i) => {
+    db.users.push({ id: db.nextId++, ...u, joinedAt: Date.now() - (i * 86400000 * 30) });
+  });
+
+  // Seed follows
+  db.follows = [
+    { followerId: 100, followingId: 101 },
+    { followerId: 100, followingId: 102 },
+    { followerId: 101, followingId: 100 },
+    { followerId: 101, followingId: 103 },
+    { followerId: 102, followingId: 100 },
+    { followerId: 103, followingId: 100 },
+    { followerId: 104, followingId: 100 },
+  ];
+
+  // Seed posts
+  const seedPosts = [
+    { authorId: 101, text: "Just finished my latest design project — a dashboard for a sustainability startup. Clean, data-rich, and hopefully inspiring action. Sharing process soon! ✨ #design #ux #sustainability" },
+    { authorId: 102, text: "Golden hour shoot at the old industrial district today. There's something haunting and beautiful about abandoned spaces. Film simulation: Velvia 100 #photography #urban #goldenhour" },
+    { authorId: 100, text: "Late night studio session turned into something unexpected. Sometimes the best music happens when you're supposed to be sleeping 🎹 #music #producer #latenight" },
+    { authorId: 103, text: "Rewrote our core API in Rust this weekend. 3x performance improvement, 60% less memory usage. The compiler is strict but the runtime is 🔥 #rust #engineering #performance" },
+    { authorId: 104, text: "Started writing a short story collection about people who live between cities — always in transit, nowhere is home. What does that feel like? #writing #fiction #modernlife" },
+    { authorId: 101, text: "Unpopular opinion: most apps have too many features. The product that does ONE thing incredibly well will always beat the swiss army knife. Less is more. #product #design #startup" },
+    { authorId: 102, text: "Coffee shops as third places are disappearing. The remote work culture took them over, and now they've become silent libraries with oat milk lattes. Miss when you'd hear conversations. #coffee #culture" },
+    { authorId: 103, text: "Hot take: if your codebase doesn't have tests, you're just gambling on a delay of consequences. Tech debt is very real and very expensive. #engineering #bestpractices #testing" },
+  ];
+
+  const now = Date.now();
+  seedPosts.forEach((p, i) => {
+    db.posts.push({ id: db.nextId++, ...p, createdAt: now - (i * 3600000 * 4) });
+  });
+
+  // Seed comments
+  const seedComments = [
+    { postId: 108, authorId: 100, text: "This is incredible! Can't wait to see the case study." },
+    { postId: 108, authorId: 102, text: "What tools did you use for the data vis?" },
+    { postId: 109, authorId: 101, text: "The shadows in this are stunning. Beautiful work." },
+    { postId: 110, authorId: 101, text: "I need to hear this track!!!" },
+    { postId: 111, authorId: 104, text: "Numbers like these are why I'm learning Rust. The GC pause times alone..." },
+    { postId: 113, authorId: 103, text: "Notion started doing one thing. Now it's an entire operating system 😅" },
+  ];
+
+  seedComments.forEach(c => {
+    db.comments.push({ id: db.nextId++, ...c, createdAt: now - Math.random() * 3600000 * 8 });
+  });
+
+  // Seed likes
+  db.likes = [
+    { userId: 100, postId: 108 }, { userId: 100, postId: 109 },
+    { userId: 101, postId: 110 }, { userId: 102, postId: 111 },
+    { userId: 103, postId: 108 }, { userId: 104, postId: 108 },
+    { userId: 100, postId: 111 }, { userId: 101, postId: 112 },
+    { userId: 102, postId: 113 }, { userId: 103, postId: 113 },
+    { userId: 104, postId: 115 }, { userId: 100, postId: 115 },
+  ];
+
+  saveDB(db);
+  return db;
+}
+
+// ============ STATE ============
+let db = initDB();
+let currentUser = null;
+let currentView = 'feed';
+let currentFeedTab = 'for-you';
+let viewingUserId = null;
+
+// ============ AUTH ============
+function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const user = db.users.find(u => u.email === email && u.password === password);
+  if (!user) {
+    document.getElementById('loginError').style.display = 'block';
+    return;
+  }
+  loginAs(user);
+}
+
+function handleSignup() {
+  const name = document.getElementById('signupName').value.trim();
+  const username = document.getElementById('signupUsername').value.trim().replace('@', '');
+  const email = document.getElementById('signupEmail').value.trim();
+  const password = document.getElementById('signupPassword').value;
+  const errorEl = document.getElementById('signupError');
+
+  if (!name || !username || !email || !password) {
+    errorEl.textContent = 'Please fill all fields';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (db.users.find(u => u.email === email)) {
+    errorEl.textContent = 'Email already registered';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (db.users.find(u => u.username === username)) {
+    errorEl.textContent = 'Username taken';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const avatarClasses = ['av-purple','av-pink','av-teal','av-orange','av-blue'];
+  const newUser = {
+    id: db.nextId++,
+    name, username, email, password,
+    bio: '✨ New to Pulse!',
+    avatarClass: avatarClasses[Math.floor(Math.random() * avatarClasses.length)],
+    joinedAt: Date.now()
+  };
+  db.users.push(newUser);
+  saveDB(db);
+  loginAs(newUser);
+  showToast('Welcome to Pulse! 🎉', 'success');
+}
+
+function loginAs(user) {
+  currentUser = user;
+  document.getElementById('authModal').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'grid';
+  initUI();
+  showFeed();
+  showToast(`Welcome back, ${user.name.split(' ')[0]}! ⚡`, 'success');
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('authModal').style.display = 'flex';
+  showToast('Logged out', 'info');
+}
+
+function switchAuthTab(tab) {
+  const tabs = document.querySelectorAll('.modal-tab');
+  tabs.forEach((t, i) => t.classList.toggle('active', (tab === 'login') ? i === 0 : i === 1));
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+}
+
+// ============ UI INIT ============
+function initUI() {
+  // Topbar avatar
+  const av = document.getElementById('topbarAvatar');
+  av.className = `avatar-sm ${currentUser.avatarClass}`;
+  av.textContent = currentUser.name[0];
+
+  const ca = document.getElementById('composeAvatar');
+  ca.className = `avatar-sm ${currentUser.avatarClass}`;
+  ca.textContent = currentUser.name[0];
+
+  renderTrending();
+  renderSuggestions();
+  renderQuickUsers();
+}
+
+function renderQuickUsers() {
+  const container = document.getElementById('quickUsers');
+  container.innerHTML = db.users.slice(0, 4).map(u =>
+    `<button class="quick-user-btn" onclick="loginAs(db.users.find(u => u.id === ${u.id}))">${u.name.split(' ')[0]}</button>`
+  ).join('');
+}
+
+// ============ FEED ============
+function showFeed() {
+  setActiveNav('navFeed');
+  document.getElementById('feedView').style.display = 'block';
+  document.getElementById('profileView').style.display = 'none';
+  document.getElementById('exploreView').style.display = 'none';
+  currentView = 'feed';
+  renderFeed();
+}
+
+function switchTab(tab, el) {
+  currentFeedTab = tab;
+  document.querySelectorAll('.feed-tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderFeed();
+}
+
+function renderFeed() {
+  let posts = [...db.posts].sort((a,b) => b.createdAt - a.createdAt);
+
+  if (currentFeedTab === 'following') {
+    const followingIds = db.follows.filter(f => f.followerId === currentUser.id).map(f => f.followingId);
+    posts = posts.filter(p => followingIds.includes(p.authorId));
+  }
+
+  const container = document.getElementById('feedPosts');
+  if (posts.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <div class="empty-text">No posts yet</div>
+      <div class="empty-sub">Follow some people to see their posts here</div>
+    </div>`;
+    return;
+  }
+  container.innerHTML = posts.map(p => renderPostCard(p)).join('');
+}
+
+function renderPostCard(post) {
+  const author = db.users.find(u => u.id === post.authorId);
+  if (!author) return '';
+  const likeCount = db.likes.filter(l => l.postId === post.id).length;
+  const commentCount = db.comments.filter(c => c.postId === post.id).length;
+  const isLiked = db.likes.some(l => l.postId === post.id && l.userId === currentUser.id);
+  const timeAgo = getTimeAgo(post.createdAt);
+  const formattedText = formatPostText(post.text);
+
+  return `
+  <div class="post-card" id="post-${post.id}">
+    <div class="post-header">
+      <div class="avatar-sm ${author.avatarClass}" onclick="viewProfile(${author.id})" style="cursor:pointer;flex-shrink:0">${author.name[0]}</div>
+      <div class="post-meta">
+        <div class="post-author">
+          <span class="author-name" onclick="viewProfile(${author.id})">${author.name}</span>
+          <span class="author-handle">@${author.username}</span>
+          <span class="post-time">· ${timeAgo}</span>
+        </div>
+      </div>
+    </div>
+    <div class="post-body">${formattedText}</div>
+    <div class="post-actions">
+      <button class="action-btn like ${isLiked ? 'liked' : ''}" onclick="toggleLike(${post.id}, this)">
+        <span class="action-icon">${isLiked ? '❤️' : '🤍'}</span>
+        <span id="like-count-${post.id}">${likeCount}</span>
+      </button>
+      <button class="action-btn comment" onclick="toggleComments(${post.id})">
+        <span class="action-icon">💬</span>
+        <span id="comment-count-${post.id}">${commentCount}</span>
+      </button>
+      <button class="action-btn share" onclick="sharePost(${post.id})">
+        <span class="action-icon">↗</span>
+      </button>
+      <button class="action-btn bookmark" onclick="showToast('Bookmarked!', 'success')">
+        <span class="action-icon">🔖</span>
+      </button>
+    </div>
+    <div class="comments-section" id="comments-${post.id}">
+      <div id="comment-list-${post.id}">${renderComments(post.id)}</div>
+      <div class="comment-compose">
+        <div class="avatar-sm ${currentUser.avatarClass}" style="width:32px;height:32px;font-size:12px;flex-shrink:0">${currentUser.name[0]}</div>
+        <input type="text" class="comment-input" id="comment-input-${post.id}" placeholder="Add a comment..." 
+          onkeydown="if(event.key==='Enter') submitComment(${post.id})">
+        <button class="comment-submit" onclick="submitComment(${post.id})">Reply</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderComments(postId) {
+  const comments = db.comments.filter(c => c.postId === postId).sort((a,b) => a.createdAt - b.createdAt);
+  if (comments.length === 0) return `<div style="color:var(--text2);font-size:13px;padding:4px 0;">No comments yet. Be first!</div>`;
+  return comments.map(c => {
+    const author = db.users.find(u => u.id === c.authorId);
+    if (!author) return '';
+    return `<div class="comment-item">
+      <div class="avatar-sm ${author.avatarClass}" style="width:32px;height:32px;font-size:12px;flex-shrink:0">${author.name[0]}</div>
+      <div class="comment-body">
+        <div class="comment-author">${author.name} <span style="color:var(--text2);font-weight:400;font-size:12px;">· ${getTimeAgo(c.createdAt)}</span></div>
+        <div class="comment-text">${escapeHtml(c.text)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============ ACTIONS ============
+function toggleLike(postId, btn) {
+  const existing = db.likes.findIndex(l => l.postId === postId && l.userId === currentUser.id);
+  if (existing >= 0) {
+    db.likes.splice(existing, 1);
+    btn.classList.remove('liked');
+    btn.querySelector('.action-icon').textContent = '🤍';
+  } else {
+    db.likes.push({ userId: currentUser.id, postId });
+    btn.classList.add('liked');
+    btn.querySelector('.action-icon').textContent = '❤️';
+    btn.querySelector('.action-icon').style.animation = 'none';
+    setTimeout(() => btn.querySelector('.action-icon').style.animation = '', 10);
+  }
+  const likeCount = db.likes.filter(l => l.postId === postId).length;
+  document.getElementById(`like-count-${postId}`).textContent = likeCount;
+  saveDB(db);
+}
+
+function toggleComments(postId) {
+  const section = document.getElementById(`comments-${postId}`);
+  section.classList.toggle('open');
+  if (section.classList.contains('open')) {
+    document.getElementById(`comment-input-${postId}`).focus();
+  }
+}
+
+function submitComment(postId) {
+  const input = document.getElementById(`comment-input-${postId}`);
+  const text = input.value.trim();
+  if (!text) return;
+
+  const comment = {
+    id: db.nextId++,
+    postId,
+    authorId: currentUser.id,
+    text,
+    createdAt: Date.now()
+  };
+  db.comments.push(comment);
+  saveDB(db);
+
+  input.value = '';
+  document.getElementById(`comment-list-${postId}`).innerHTML = renderComments(postId);
+  const count = db.comments.filter(c => c.postId === postId).length;
+  document.getElementById(`comment-count-${postId}`).textContent = count;
+  showToast('Comment posted! 💬', 'success');
+}
+
+function sharePost(postId) {
+  navigator.clipboard.writeText(`https://pulse.app/post/${postId}`).catch(() => {});
+  showToast('Link copied to clipboard! 🔗', 'success');
+}
+
+function submitPost() {
+  const input = document.getElementById('composeInput');
+  const text = input.value.trim();
+  if (!text || text.length > 280) return;
+
+  const post = {
+    id: db.nextId++,
+    authorId: currentUser.id,
+    text,
+    createdAt: Date.now()
+  };
+  db.posts.push(post);
+  saveDB(db);
+
+  input.value = '';
+  updateCharCount(input);
+  renderFeed();
+  renderTrending();
+  showToast('Posted! ✨', 'success');
+  document.getElementById('feedPosts').scrollIntoView({ behavior: 'smooth' });
+}
+
+function updateCharCount(el) {
+  const remaining = 280 - el.value.length;
+  const counter = document.getElementById('charCount');
+  counter.textContent = remaining;
+  counter.className = `char-count ${remaining < 20 ? 'warn' : ''}`;
+  document.getElementById('submitPostBtn').disabled = !el.value.trim() || remaining < 0;
+}
+
+function focusCompose() {
+  showFeed();
+  setTimeout(() => {
+    document.getElementById('composeInput').focus();
+    document.querySelector('.compose-box').scrollIntoView({ behavior: 'smooth' });
+  }, 100);
+}
+
+// ============ PROFILE ============
+function viewProfile(userId) {
+  viewingUserId = userId;
+  const user = db.users.find(u => u.id === userId);
+  if (!user) return;
+
+  setActiveNav('navProfile');
+  document.getElementById('feedView').style.display = 'none';
+  document.getElementById('exploreView').style.display = 'none';
+  document.getElementById('profileView').style.display = 'block';
+
+  // Avatar & banner
+  const pa = document.getElementById('profileAvatar');
+  pa.className = `profile-avatar ${user.avatarClass}`;
+  pa.textContent = user.name[0];
+
+  document.getElementById('profileName').textContent = user.name;
+  document.getElementById('profileHandle').textContent = `@${user.username}`;
+  document.getElementById('profileBio').textContent = user.bio || '';
+
+  // Stats
+  const userPosts = db.posts.filter(p => p.authorId === userId);
+  const followers = db.follows.filter(f => f.followingId === userId).length;
+  const following = db.follows.filter(f => f.followerId === userId).length;
+  document.getElementById('profilePosts').textContent = userPosts.length;
+  document.getElementById('profileFollowers').textContent = followers;
+  document.getElementById('profileFollowing').textContent = following;
+
+  // Actions
+  const actions = document.getElementById('profileActions');
+  if (userId === currentUser.id) {
+    actions.innerHTML = `<button class="btn-outline" onclick="showToast('Edit profile coming soon!', 'info')">Edit Profile</button>`;
+  } else {
+    const isFollowing = db.follows.some(f => f.followerId === currentUser.id && f.followingId === userId);
+    actions.innerHTML = `
+      <button class="btn-outline" onclick="showToast('DMs coming soon!', 'info')">Message</button>
+      <button class="btn-primary" id="followBtn-${userId}" onclick="toggleFollow(${userId})">${isFollowing ? 'Following' : 'Follow'}</button>`;
+  }
+
+  // Posts
+  const postsContainer = document.getElementById('profilePosts');
+  if (userPosts.length === 0) {
+    postsContainer.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📝</div>
+      <div class="empty-text">No posts yet</div>
+      <div class="empty-sub">${userId === currentUser.id ? 'Share something with the world!' : `${user.name.split(' ')[0]} hasn't posted yet.`}</div>
+    </div>`;
+  } else {
+    postsContainer.innerHTML = [...userPosts].sort((a,b) => b.createdAt - a.createdAt).map(p => renderPostCard(p)).join('');
+  }
+}
+
+function viewCurrentProfile() { viewProfile(currentUser.id); }
+
+function toggleFollow(userId) {
+  const existing = db.follows.findIndex(f => f.followerId === currentUser.id && f.followingId === userId);
+  if (existing >= 0) {
+    db.follows.splice(existing, 1);
+    const btn = document.getElementById(`followBtn-${userId}`);
+    if (btn) btn.textContent = 'Follow';
+    showToast('Unfollowed', 'info');
+  } else {
+    db.follows.push({ followerId: currentUser.id, followingId: userId });
+    const btn = document.getElementById(`followBtn-${userId}`);
+    if (btn) btn.textContent = 'Following';
+    showToast('Following! 🎉', 'success');
+  }
+  saveDB(db);
+  renderSuggestions();
+  // Refresh stats if on profile view
+  if (viewingUserId === userId) viewProfile(userId);
+}
+
+// ============ EXPLORE ============
+function showExplore() {
+  setActiveNav('navExplore');
+  document.getElementById('feedView').style.display = 'none';
+  document.getElementById('profileView').style.display = 'none';
+  document.getElementById('exploreView').style.display = 'block';
+  renderExplore();
+}
+
+function renderExplore() {
+  const allUsers = db.users.filter(u => u.id !== currentUser.id);
+  const allPosts = [...db.posts].sort((a,b) => {
+    const la = db.likes.filter(l => l.postId === a.id).length;
+    const lb = db.likes.filter(l => l.postId === b.id).length;
+    return lb - la;
+  }).slice(0, 10);
+
+  document.getElementById('exploreContent').innerHTML = `
+    <div style="margin-bottom:24px">
+      <div class="widget-title" style="font-family:var(--font-head);font-weight:800;font-size:18px;margin-bottom:16px">🌟 Top Posts</div>
+      ${allPosts.map(p => renderPostCard(p)).join('')}
+    </div>
+    <div style="margin-top: 32px">
+      <div class="widget-title" style="font-family:var(--font-head);font-weight:800;font-size:18px;margin-bottom:16px">👥 People</div>
+      ${allUsers.map(u => {
+        const isFollowing = db.follows.some(f => f.followerId === currentUser.id && f.followingId === u.id);
+        const followers = db.follows.filter(f => f.followingId === u.id).length;
+        return `<div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">
+          <div class="avatar-sm ${u.avatarClass}" onclick="viewProfile(${u.id})" style="width:48px;height:48px;font-size:18px;cursor:pointer;flex-shrink:0">${u.name[0]}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-family:var(--font-head);font-weight:700;cursor:pointer" onclick="viewProfile(${u.id})">${u.name}</div>
+            <div style="font-size:13px;color:var(--text2)">@${u.username} · ${followers} followers</div>
+            <div style="font-size:13px;color:var(--text2);margin-top:2px">${u.bio || ''}</div>
+          </div>
+          <button class="follow-btn ${isFollowing ? 'following' : ''}" onclick="toggleFollow(${u.id}); this.textContent = this.classList.contains('following') ? 'Follow' : 'Following'; this.classList.toggle('following')">${isFollowing ? 'Following' : 'Follow'}</button>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ============ WIDGETS ============
+function renderTrending() {
+  const hashtags = {};
+  db.posts.forEach(p => {
+    const tags = p.text.match(/#\w+/g) || [];
+    tags.forEach(tag => { hashtags[tag] = (hashtags[tag] || 0) + 1; });
+  });
+  const sorted = Object.entries(hashtags).sort((a,b) => b[1]-a[1]).slice(0, 5);
+
+  document.getElementById('trendingList').innerHTML = sorted.length ? sorted.map(([tag, count]) =>
+    `<div class="trend-item" onclick="handleSearch('${tag}')">
+      <div class="trend-tag">${tag}</div>
+      <div class="trend-count">${count} post${count !== 1 ? 's' : ''}</div>
+    </div>`
+  ).join('') : `<div style="color:var(--text2);font-size:14px">No trends yet</div>`;
+}
+
+function renderSuggestions() {
+  const followingIds = db.follows.filter(f => f.followerId === currentUser.id).map(f => f.followingId);
+  const suggestions = db.users.filter(u => u.id !== currentUser.id && !followingIds.includes(u.id)).slice(0, 4);
+
+  document.getElementById('suggestList').innerHTML = suggestions.length ? suggestions.map(u =>
+    `<div class="suggest-item">
+      <div class="avatar-sm ${u.avatarClass}" onclick="viewProfile(${u.id})" style="cursor:pointer;flex-shrink:0">${u.name[0]}</div>
+      <div class="suggest-info">
+        <div class="suggest-name" onclick="viewProfile(${u.id})" style="cursor:pointer">${u.name}</div>
+        <div class="suggest-handle">@${u.username}</div>
+      </div>
+      <button class="follow-btn" onclick="toggleFollow(${u.id}); this.textContent='Following'; this.classList.add('following')">Follow</button>
+    </div>`
+  ).join('') : `<div style="color:var(--text2);font-size:14px">You're following everyone! 🎉</div>`;
+}
+
+// ============ SEARCH ============
+function handleSearch(query) {
+  if (!query) { if (currentView === 'feed') renderFeed(); return; }
+  showExplore();
+  const q = query.toLowerCase().replace('#', '');
+  const matchingPosts = db.posts.filter(p =>
+    p.text.toLowerCase().includes(q) ||
+    p.text.includes('#' + q)
+  ).sort((a,b) => b.createdAt - a.createdAt);
+
+  const matchingUsers = db.users.filter(u =>
+    u.name.toLowerCase().includes(q) || u.username.toLowerCase().includes(q)
+  );
+
+  document.getElementById('exploreContent').innerHTML = `
+    <div style="margin-bottom:16px;color:var(--text2);font-size:14px">Results for "<strong style="color:var(--text)">${escapeHtml(query)}</strong>"</div>
+    ${matchingUsers.length ? `<div style="margin-bottom:24px">
+      <div class="widget-title" style="font-size:16px;margin-bottom:12px">People</div>
+      ${matchingUsers.map(u => {
+        const isFollowing = db.follows.some(f => f.followerId === currentUser.id && f.followingId === u.id);
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div class="avatar-sm ${u.avatarClass}" onclick="viewProfile(${u.id})" style="cursor:pointer">${u.name[0]}</div>
+          <div style="flex:1"><div style="font-weight:600;cursor:pointer" onclick="viewProfile(${u.id})">${u.name}</div><div style="font-size:13px;color:var(--text2)">@${u.username}</div></div>
+          ${u.id !== currentUser.id ? `<button class="follow-btn ${isFollowing?'following':''}" onclick="toggleFollow(${u.id});this.textContent=this.classList.contains('following')?'Follow':'Following';this.classList.toggle('following')">${isFollowing?'Following':'Follow'}</button>` : ''}
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+    ${matchingPosts.length ? `<div>
+      <div class="widget-title" style="font-size:16px;margin-bottom:12px">Posts</div>
+      ${matchingPosts.map(p => renderPostCard(p)).join('')}
+    </div>` : `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results found</div></div>`}`;
+}
+
+// ============ UTILS ============
+function formatPostText(text) {
+  return escapeHtml(text)
+    .replace(/#(\w+)/g, '<span class="hashtag" onclick="handleSearch(\'#$1\')">#$1</span>')
+    .replace(/\n/g, '<br>');
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getTimeAgo(ts) {
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff / 60000);
+  const h = Math.floor(diff / 3600000);
+  const d = Math.floor(diff / 86400000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m`;
+  if (h < 24) return `${h}h`;
+  if (d < 7) return `${d}d`;
+  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  const icons = { success: '✓', error: '✕', info: 'ℹ' };
+  toast.innerHTML = `<span style="font-size:16px">${icons[type]}</span> ${message}`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.transition = 'all 0.3s ease';
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function setActiveNav(id) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+function showFollowList(type) {
+  showToast(`${type === 'followers' ? 'Followers' : 'Following'} list coming soon!`, 'info');
+}
+
+function insertEmoji() {
+  const emojis = ['🔥', '✨', '💡', '🚀', '💜', '😊', '🎉', '⚡', '🌟', '💫'];
+  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+  const input = document.getElementById('composeInput');
+  input.value += emoji;
+  updateCharCount(input);
+  input.focus();
+}
+
+// ============ KEYBOARD SHORTCUTS ============
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.comments-section.open').forEach(s => s.classList.remove('open'));
+  }
+});
+
+// Render quick users on page load
+renderQuickUsers();
+</script>
+</body>
+</html>
